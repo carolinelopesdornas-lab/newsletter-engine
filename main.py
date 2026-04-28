@@ -241,7 +241,8 @@ def enviar_email(conteudo: dict, config: dict, data_envio: datetime) -> None:
     smtp_user = os.environ.get("SMTP_USER")
     smtp_password = os.environ.get("SMTP_PASSWORD")
     from_email = os.environ.get("FROM_EMAIL", smtp_user)
-    to_email = config.get("to_email") or os.environ.get("TO_EMAIL", "")
+    to_email_raw = config.get("to_email") or os.environ.get("TO_EMAIL", "")
+    to_email = to_email_raw if isinstance(to_email_raw, list) else [to_email_raw]
 
     if not smtp_user or not smtp_password:
         raise ValueError("Credenciais SMTP ausentes. Configure SMTP_USER e SMTP_PASSWORD.")
@@ -252,7 +253,7 @@ def enviar_email(conteudo: dict, config: dict, data_envio: datetime) -> None:
     msg = MIMEMultipart("alternative")
     msg["Subject"] = f"Newsletter {config['name']} — Semana de {data_str}"
     msg["From"] = f"{config.get('from_name', config['name'])} <{from_email}>"
-    msg["To"] = to_email
+    msg["To"] = ", ".join(to_email)
 
     destaque_titulo = conteudo.get("destaque_semana", {}).get("titulo", "")
     texto_plain = (
@@ -270,7 +271,7 @@ def enviar_email(conteudo: dict, config: dict, data_envio: datetime) -> None:
         server.starttls()
         server.ehlo()
         server.login(smtp_user, smtp_password)
-        server.sendmail(from_email, [to_email], msg.as_string())
+        server.sendmail(from_email, to_email, msg.as_string())
 
     logger.info("E-mail enviado com sucesso para %s", to_email)
 

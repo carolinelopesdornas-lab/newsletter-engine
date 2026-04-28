@@ -1,7 +1,7 @@
 {
   "name": "JT Esportes",
   "from_name": "JT Esportes Newsletter",
-  "to_email": "jtcarvalho.seg@gmail.com",
+  "to_email": ["jtcarvalho.seg@gmail.com", "caroline.lopes.dornas@gmail.com"],
   "topic": "educação física, treinamento de força e ciência do exercício",
   "audience": "profissionais de educação física e personal trainers",
   "sections": [
