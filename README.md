@@ -1,137 +1,147 @@
-# Newsletter JT Esportes
+# Newsletter Engine
 
-Newsletter semanal automática de educação física. Toda segunda-feira às 7h (horário de Brasília) o sistema busca artigos nas 10 fontes científicas configuradas, processa com a API do Claude e envia um e-mail HTML curado para o destinatário configurado.
+Motor de newsletter semanal automática. Busca artigos em fontes RSS, usa o Claude (Anthropic) para curar e resumir o conteúdo, e envia um e-mail HTML formatado para o destinatário configurado.
 
-Roda 100% na nuvem no **Railway** — não precisa de computador ligado.
+Cada newsletter é definida por um arquivo JSON em `newsletters/`. O código não precisa ser alterado para criar uma nova.
 
 ---
 
-## Pré-requisitos
+## Como funciona
 
-| Item | Onde obter |
+```
+Railway (cron) → main.py → busca RSS → Claude API → envia e-mail
+```
+
+1. No horário configurado, o Railway executa `python main.py --newsletter newsletters/<arquivo>.json`
+2. O motor busca artigos das fontes RSS definidas no JSON
+3. Envia os artigos para o Claude, que gera o conteúdo estruturado da newsletter
+4. O e-mail HTML é montado e enviado via SMTP
+
+---
+
+## Estrutura de arquivos
+
+```
+newsletter-engine/
+├── main.py               # motor principal (não alterar)
+├── email_template.py     # template HTML do e-mail (não alterar)
+├── scheduler.py          # script para testes locais
+├── railway.json          # configuração do Railway
+├── Procfile
+├── requirements.txt
+├── .env.example          # modelo das variáveis de ambiente
+└── newsletters/
+    ├── jt-esportes.json  # newsletter JT Esportes
+    └── <nova>.json       # nova newsletter que você criar
+```
+
+---
+
+## Criando uma nova newsletter
+
+### Passo 1 — Criar o arquivo de configuração
+
+Copie `newsletters/jt-esportes.json` como base e edite:
+
+```json
+{
+  "name": "Nome da Newsletter",
+  "from_name": "Nome que aparece no remetente",
+  "to_email": "destinatario@email.com",
+  "topic": "tema principal da newsletter",
+  "audience": "público-alvo (ex: médicos, professores, investidores)",
+  "sections": [
+    {
+      "key": "chave_unica",
+      "label": "Título da Seção",
+      "emoji": "📌",
+      "color": "#CBFF00",
+      "instruction": "Instrução para o Claude sobre o que incluir nesta seção."
+    }
+  ],
+  "sources": [
+    { "name": "Nome da Fonte", "url": "https://site.com/feed.rss" },
+    { "name": "Outra Fonte",   "url": "https://outro.com/feed/", "ignore_http_error": true }
+  ]
+}
+```
+
+**Campos obrigatórios:** `name`, `to_email`, `topic`, `audience`, `sources`
+
+**Opções por fonte:**
+
+| Campo | Descrição |
 |---|---|
-| Conta no [Railway](https://railway.app) | railway.app |
-| Chave de API do Claude | [console.anthropic.com](https://console.anthropic.com) |
-| Conta Gmail com **Senha de App** ativada | myaccount.google.com → Segurança → Senhas de app |
+| `name` | Nome exibido no e-mail |
+| `url` | URL do feed RSS/Atom |
+| `ignore_http_error` | `true` para ignorar erros HTTP (feeds problemáticos) |
+| `verify_ssl` | `false` para ignorar erros de certificado SSL |
+
+**Opções por seção:**
+
+| Campo | Descrição |
+|---|---|
+| `key` | Chave única (sem espaços), usada no JSON do Claude |
+| `label` | Título exibido no e-mail |
+| `emoji` | Ícone da seção |
+| `color` | Cor hex do título e bordas (ex: `#CBFF00`) |
+| `instruction` | Instrução para o Claude sobre o que selecionar |
+
+### Passo 2 — Adicionar um Cron Service no Railway
+
+1. No painel do Railway, abra seu projeto
+2. Clique em **New Service → Empty Service**
+3. Conecte ao mesmo repositório GitHub
+4. Em **Settings → Deploy → Start Command**, coloque:
+   ```
+   python main.py --newsletter newsletters/<nome-do-arquivo>.json
+   ```
+5. Em **Settings → Schedule**, defina o horário no formato cron (UTC):
+   ```
+   0 10 * * 1   → toda segunda às 07h (BRT = UTC-3)
+   0 12 * * 5   → toda sexta às 09h (BRT)
+   ```
+6. Adicione as variáveis de ambiente (mesmas do projeto principal)
 
 ---
 
-## Configuração local (para testes)
+## Testando localmente
 
 ```bash
-# 1. Clone o repositório (ou entre na pasta do projeto)
-cd newsletter-jt-esportes
+# Copia o .env.example e preenche com suas credenciais reais
+cp .env.example .env
 
-# 2. Crie o ambiente virtual e instale as dependências
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+# Instala as dependências
 pip install -r requirements.txt
 
-# 3. Configure as variáveis de ambiente
-cp .env.example .env
-# Edite o arquivo .env com seus dados reais
-
-# 4. Teste imediatamente (sem esperar segunda-feira)
-python scheduler.py --teste
+# Dispara a newsletter imediatamente
+python scheduler.py --newsletter newsletters/jt-esportes.json
 ```
 
 ---
 
-## Deploy no Railway
+## Variáveis de ambiente
 
-### 1. Suba o código
+Configure no Railway em **Settings → Variables** (ou no arquivo `.env` para testes locais):
 
-```bash
-# Inicialize o Git (se ainda não fez)
-git init
-git add .
-git commit -m "Initial commit"
+| Variável | Descrição | Exemplo |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Chave da API do Claude | `sk-ant-...` |
+| `SMTP_HOST` | Servidor SMTP | `smtp.gmail.com` |
+| `SMTP_PORT` | Porta SMTP | `587` |
+| `SMTP_USER` | E-mail de envio | `seuemail@gmail.com` |
+| `SMTP_PASSWORD` | Senha de app do Gmail | `xxxx xxxx xxxx xxxx` |
+| `FROM_EMAIL` | Remetente (igual ao SMTP_USER) | `seuemail@gmail.com` |
 
-# Crie um repositório no GitHub e faça o push
-git remote add origin https://github.com/SEU_USUARIO/newsletter-jt-esportes.git
-git push -u origin main
-```
-
-### 2. Crie o projeto no Railway
-
-1. Acesse [railway.app](https://railway.app) e clique em **New Project**
-2. Escolha **Deploy from GitHub repo** e selecione o repositório
-3. Railway detecta o `railway.json` e configura automaticamente
-
-### 3. Configure as variáveis de ambiente no Railway
-
-No painel do projeto: **Variables** → adicione cada variável:
-
-```
-ANTHROPIC_API_KEY   = sk-ant-...
-SMTP_HOST           = smtp.gmail.com
-SMTP_PORT           = 587
-SMTP_USER           = seu_email@gmail.com
-SMTP_PASSWORD       = xxxx xxxx xxxx xxxx
-FROM_EMAIL          = seu_email@gmail.com
-TO_EMAIL            = jtcarvalho.seg@gmail.com
-```
-
-### 4. Ative o worker
-
-- Em **Settings** do serviço, confirme que o tipo é **Worker** (não Web)
-- Clique em **Deploy** — o container inicia e aguarda a próxima segunda às 7h
+> **Gmail:** crie uma "Senha de app" em [myaccount.google.com/security](https://myaccount.google.com/security). Requer verificação em duas etapas ativada.
 
 ---
 
-## Fontes RSS monitoradas
+## Seções fixas (sempre presentes)
 
-| Fonte | Área |
-|---|---|
-| PubMed — Strength Training | Treinamento de força e resistência |
-| PubMed — Personal Trainer | Metodologia e fitness |
-| PubMed — Exercise & Aging | Exercício, gerontologia e longevidade |
-| Stronger By Science | Evidências em hipertrofia e força |
-| Barbell Medicine | Medicina esportiva e treinamento |
-| RP Strength | Periodização e hipertrofia |
-| RBPFEX | Pesquisa brasileira em exercício físico |
-| RBCE | Revista Brasileira de Ciências do Esporte |
-| ACSM | American College of Sports Medicine |
-| Science Direct — Exercise | Periódicos acadêmicos internacionais |
+Além das seções que você define no JSON, toda newsletter inclui automaticamente:
 
----
-
-## Estrutura do projeto
-
-```
-newsletter-jt-esportes/
-├── main.py            # Lógica principal: RSS → Claude → e-mail
-├── scheduler.py       # Agendador APScheduler (ponto de entrada)
-├── email_template.py  # Template HTML do e-mail
-├── requirements.txt   # Dependências Python
-├── .env.example       # Modelo das variáveis de ambiente
-├── .env               # Suas credenciais (NÃO commitar)
-├── Procfile           # Definição do processo para Railway/Heroku
-├── railway.json       # Configuração do Railway
-└── README.md          # Esta documentação
-```
-
----
-
-## Comandos úteis
-
-```bash
-# Executar imediatamente (modo teste)
-python scheduler.py --teste
-
-# Executar só a lógica principal
-python main.py
-
-# Ver logs em tempo real (Railway CLI)
-railway logs
-```
-
----
-
-## Gmail — Como criar Senha de App
-
-1. Acesse [myaccount.google.com/security](https://myaccount.google.com/security)
-2. Ative **Verificação em duas etapas** se ainda não estiver ativa
-3. Em "Como você faz login no Google", clique em **Senhas de app**
-4. Selecione app **E-mail** e dispositivo **Outro (nome personalizado)** → "Railway Newsletter"
-5. Copie a senha de 16 caracteres e use como `SMTP_PASSWORD`
+- **Destaque da Semana** — artigo mais relevante com aplicação prática
+- **Dicas para sua Prática** — 3 dicas geradas pelo Claude
+- **Reflexão da Semana** — citação ou insight motivacional
+- **Resumo Executivo** — parágrafo no cabeçalho com os principais aprendizados

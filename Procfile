@@ -1,1 +1,1 @@
-worker: python main.py
+worker: python main.py --newsletter newsletters/jt-esportes.json

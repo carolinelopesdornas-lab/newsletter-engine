@@ -1,0 +1,54 @@
+{
+  "name": "JT Esportes",
+  "from_name": "JT Esportes Newsletter",
+  "to_email": "jtcarvalho.seg@gmail.com",
+  "topic": "educação física, treinamento de força e ciência do exercício",
+  "audience": "profissionais de educação física e personal trainers",
+  "sections": [
+    {
+      "key": "artigos_pesquisa",
+      "label": "Pesquisas da Semana",
+      "emoji": "🔬",
+      "color": "#CBFF00",
+      "instruction": "Selecione 5 a 8 artigos mais relevantes para treinamento de força e personal training. Priorize: hipertrofia, força, periodização, longevidade, nutrição."
+    },
+    {
+      "key": "noticias_tenis",
+      "label": "Tênis & Calçados Esportivos",
+      "emoji": "👟",
+      "color": "#CBFF00",
+      "instruction": "Inclua exatamente 3 itens da fonte 'Tênis Certo (YouTube)', os mais recentes."
+    },
+    {
+      "key": "biohacking",
+      "label": "Biohacking",
+      "emoji": "🧬",
+      "color": "#9B59B6",
+      "instruction": "Inclua 3-5 itens das fontes 'Dave Asprey - Biohacking' e 'Ben Greenfield Life'. Se não houver, use qualquer artigo sobre biohacking, otimização humana, longevidade ou suplementação."
+    },
+    {
+      "key": "tecnologia_vestiveis",
+      "label": "Tecnologia & Vestíveis",
+      "emoji": "⌚",
+      "color": "#00BFFF",
+      "instruction": "Inclua itens das fontes 'DC Rainmaker' e 'Wareable', mínimo 3. Se não houver, use qualquer artigo sobre tecnologia, wearables ou equipamentos esportivos."
+    }
+  ],
+  "sources": [
+    { "name": "International Journal of Exercise Science", "url": "https://digitalcommons.wku.edu/ijes/recent.rss" },
+    { "name": "Sigma Nutrition", "url": "https://sigmanutrition.com/feed/" },
+    { "name": "Frontiers in Sports and Active Living", "url": "https://www.frontiersin.org/journals/sports-and-active-living/rss" },
+    { "name": "Stronger By Science", "url": "https://www.strongerbyscience.com/feed/" },
+    { "name": "Barbell Medicine", "url": "https://www.barbellmedicine.com/blog/feed/" },
+    { "name": "Science for Sport", "url": "https://www.scienceforsport.com/feed/" },
+    { "name": "RBPFEX", "url": "https://www.rbpfex.com.br/index.php/rbpfex/gateway/plugin/WebFeedGatewayPlugin/rss2" },
+    { "name": "Peter Attia - The Drive", "url": "https://peterattiamd.com/feed/" },
+    { "name": "RP Strength (Dr. Mike Israetel)", "url": "https://rpstrength.com/blogs/articles.atom" },
+    { "name": "Tênis Certo (YouTube)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCaVpzaxGCCrNgZt5l4lh5OA" },
+    { "name": "Dave Asprey - Biohacking", "url": "https://daveasprey.com/feed/" },
+    { "name": "Ben Greenfield Life", "url": "https://bengreenfieldlife.com/feed/", "ignore_http_error": true },
+    { "name": "DC Rainmaker", "url": "https://www.dcrainmaker.com/feed" },
+    { "name": "Wareable", "url": "https://www.wareable.com/feed/" },
+    { "name": "Science Direct - Exercise Science", "url": "https://rss.sciencedirect.com/publication/science/07651597" }
+  ]
+}
